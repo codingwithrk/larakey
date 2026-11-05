@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Report a security vulnerability
-    url: https://github.com/codingwithrk/larakey/security/advisories/new
-    about: Please report security problems privately, never in a public issue.
   - name: Installation help (unsigned app warnings)
     url: https://github.com/codingwithrk/larakey#installation
     about: '"Larakey can''t be opened" on macOS or "Windows protected your PC"? See the install steps.'
