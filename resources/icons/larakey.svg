@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f3237"/>
+      <stop offset="1" stop-color="#121316"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="skirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#059669"/>
+      <stop offset="1" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7b7"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.42" cy="0.55" r="0.5">
+      <stop offset="0" stop-color="#10b981" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- macOS-style rounded square -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#glow)"/>
+  <rect x="102" y="102" width="820" height="820" rx="184" fill="none" stroke="url(#rim)" stroke-width="4"/>
+
+  <!-- keycap shadow -->
+  <ellipse cx="430" cy="748" rx="200" ry="22" fill="#000" opacity="0.35"/>
+
+  <!-- keycap skirt -->
+  <rect x="222" y="318" width="416" height="424" rx="76" fill="url(#skirt)"/>
+  <!-- keycap top -->
+  <rect x="270" y="336" width="320" height="320" rx="56" fill="url(#top)"/>
+  <rect x="270" y="336" width="320" height="320" rx="56" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="4"/>
+
+  <!-- legend -->
+  <path d="M378 410 V572 H488" fill="none" stroke="#064e3b" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- sound waves -->
+  <g fill="none" stroke="#34d399" stroke-linecap="round" stroke-width="34">
+    <path d="M676 450 A100 100 0 0 1 676 610" opacity="1"/>
+    <path d="M728 396 A170 170 0 0 1 728 664" opacity="0.65"/>
+    <path d="M780 342 A240 240 0 0 1 780 718" opacity="0.35"/>
+  </g>
+</svg>

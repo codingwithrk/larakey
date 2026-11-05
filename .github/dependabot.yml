@@ -1,0 +1,99 @@
+# Dependabot keeps Larakey's dependencies up to date.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# To keep the noise down, checks run monthly and updates are grouped: one pull request per
+# area for minor/patch updates and one for security fixes. Major updates arrive separately so
+# each one can be reviewed on its own.
+
+version: 2
+
+updates:
+  # Laravel app (PHP)
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - php
+    commit-message:
+      prefix: deps
+    groups:
+      php-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+      php-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+    ignore:
+      # A new NativePHP major version requires republishing nativephp/electron and porting the
+      # Larakey sound engine, so upgrade it by hand.
+      - dependency-name: nativephp/desktop
+        update-types:
+          - version-update:semver-major
+
+  # Frontend build (Vite / Tailwind)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - javascript
+    commit-message:
+      prefix: deps
+    groups:
+      frontend-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+      frontend-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  # Electron shell and sound engine. NativePHP manages most of this package.json, so only take
+  # minor and patch updates here. Major versions (including Electron) are upgraded by hand and
+  # tested with a full app build first.
+  - package-ecosystem: npm
+    directory: /nativephp/electron
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - electron
+    commit-message:
+      prefix: deps
+    groups:
+      electron-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+      electron-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+
+  # GitHub Actions used by the release workflow
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - '*'

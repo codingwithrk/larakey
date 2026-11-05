@@ -1,0 +1,44 @@
+{
+    "name": "Muted Mouse",
+    "description": "Soft, dampened clicks that stay in the background.",
+    "down": {
+        "default": [
+            "down-default-1.wav",
+            "down-default-2.wav",
+            "down-default-3.wav",
+            "down-default-4.wav"
+        ],
+        "right": [
+            "down-right-1.wav",
+            "down-right-2.wav",
+            "down-right-3.wav",
+            "down-right-4.wav"
+        ],
+        "middle": [
+            "down-middle-1.wav",
+            "down-middle-2.wav",
+            "down-middle-3.wav",
+            "down-middle-4.wav"
+        ]
+    },
+    "up": {
+        "default": [
+            "up-default-1.wav",
+            "up-default-2.wav",
+            "up-default-3.wav",
+            "up-default-4.wav"
+        ],
+        "right": [
+            "up-right-1.wav",
+            "up-right-2.wav",
+            "up-right-3.wav",
+            "up-right-4.wav"
+        ],
+        "middle": [
+            "up-middle-1.wav",
+            "up-middle-2.wav",
+            "up-middle-3.wav",
+            "up-middle-4.wav"
+        ]
+    }
+}

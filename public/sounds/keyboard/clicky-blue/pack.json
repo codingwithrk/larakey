@@ -1,0 +1,68 @@
+{
+    "name": "Clicky Blue",
+    "description": "Crisp click jacket followed by a sharp bottom-out.",
+    "down": {
+        "default": [
+            "down-default-1.wav",
+            "down-default-2.wav",
+            "down-default-3.wav",
+            "down-default-4.wav"
+        ],
+        "space": [
+            "down-space-1.wav",
+            "down-space-2.wav",
+            "down-space-3.wav",
+            "down-space-4.wav"
+        ],
+        "enter": [
+            "down-enter-1.wav",
+            "down-enter-2.wav",
+            "down-enter-3.wav",
+            "down-enter-4.wav"
+        ],
+        "backspace": [
+            "down-backspace-1.wav",
+            "down-backspace-2.wav",
+            "down-backspace-3.wav",
+            "down-backspace-4.wav"
+        ],
+        "modifier": [
+            "down-modifier-1.wav",
+            "down-modifier-2.wav",
+            "down-modifier-3.wav",
+            "down-modifier-4.wav"
+        ]
+    },
+    "up": {
+        "default": [
+            "up-default-1.wav",
+            "up-default-2.wav",
+            "up-default-3.wav",
+            "up-default-4.wav"
+        ],
+        "space": [
+            "up-space-1.wav",
+            "up-space-2.wav",
+            "up-space-3.wav",
+            "up-space-4.wav"
+        ],
+        "enter": [
+            "up-enter-1.wav",
+            "up-enter-2.wav",
+            "up-enter-3.wav",
+            "up-enter-4.wav"
+        ],
+        "backspace": [
+            "up-backspace-1.wav",
+            "up-backspace-2.wav",
+            "up-backspace-3.wav",
+            "up-backspace-4.wav"
+        ],
+        "modifier": [
+            "up-modifier-1.wav",
+            "up-modifier-2.wav",
+            "up-modifier-3.wav",
+            "up-modifier-4.wav"
+        ]
+    }
+}

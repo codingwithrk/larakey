@@ -1,0 +1,54 @@
+name: Sound pack request or feedback
+description: Suggest a new mechanical switch or mouse pack, or help tune an existing one.
+title: '[Sound]: '
+labels:
+  - sound-pack
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Larakey's packs are synthesized from recipes in `config/larakey.php`, so describing how a
+        switch *sounds* is the most helpful thing you can share. Only mechanical keyboard and mouse
+        switches, please.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Request type
+      options:
+        - New keyboard switch pack
+        - New mouse pack
+        - Tune an existing pack
+    validations:
+      required: true
+
+  - type: input
+    id: pack
+    attributes:
+      label: Pack or switch name
+      placeholder: Clicky Blue / Holy Panda / Low Profile
+    validations:
+      required: true
+
+  - type: textarea
+    id: sound
+    attributes:
+      label: How should it sound?
+      description: Pitch, sharpness, loudness, ping, rattle, and what's different from the closest existing pack.
+      placeholder: Deeper and less hollow than Creamy Linear, with a softer bottom-out and no ping.
+    validations:
+      required: true
+
+  - type: input
+    id: reference
+    attributes:
+      label: Reference recording (optional)
+      description: A link to a typing test video or sound sample that captures the sound.
+
+  - type: checkboxes
+    id: recording
+    attributes:
+      label: Recorded sounds
+      description: If you plan to contribute your own recordings instead of a recipe.
+      options:
+        - label: I recorded these sounds myself, or they're licensed for redistribution under MIT.

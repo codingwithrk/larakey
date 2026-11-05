@@ -1,0 +1,221 @@
+# Builds Larakey for macOS and Windows and publishes the installers to a GitHub Release,
+# but only after the tests pass and a maintainer approves.
+#
+# How a release happens:
+#
+#   1. Bump NATIVEPHP_APP_VERSION in .env.example (for example 1.0.0 -> 1.1.0) and push to main.
+#   2. The Tests workflow runs. If it fails, nothing else happens.
+#   3. If the tests pass and no published release exists for that version yet, this workflow
+#      pauses on the "release" environment and waits for approval.
+#   4. Approve to build and publish v1.1.0, or reject to skip.
+#
+# Pushes that don't change the version never offer a release. Builds are unsigned.
+#
+# One-time setup: Settings -> Environments -> New environment "release" -> Required reviewers -> add
+# yourself. The workflow refuses to run if that protection is missing.
+
+name: Release
+
+on:
+  workflow_run:
+    workflows:
+      - Tests
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PHP_VERSION: '8.5'
+  NODE_VERSION: '22'
+
+jobs:
+  check:
+    name: Check for a new version
+    # Only successful test runs from direct pushes to main, never from pull requests.
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.version.outputs.should-release }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Read version and look for an existing release
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(grep -E '^NATIVEPHP_APP_VERSION=' .env.example | cut -d= -f2 | tr -d '"[:space:]')
+
+          if [[ -z "$version" ]]; then
+            echo "::error::NATIVEPHP_APP_VERSION is missing from .env.example."
+            exit 1
+          fi
+
+          tag="v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          is_draft=$(gh release view "$tag" --json isDraft --jq '.isDraft' 2>/dev/null || echo "none")
+
+          if [[ "$is_draft" == "false" ]]; then
+            echo "Release $tag is already published. Bump NATIVEPHP_APP_VERSION in .env.example to offer a new release."
+            echo "should-release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version $version has not been released yet. Waiting for approval."
+            echo "should-release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Make sure releases require approval
+        if: steps.version.outputs.should-release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          protected=$(gh api "repos/$GITHUB_REPOSITORY/environments/release" \
+            --jq '[.protection_rules[]?.type] | index("required_reviewers") != null' 2>/dev/null || echo "false")
+
+          if [[ "$protected" != "true" ]]; then
+            echo "::error::The 'release' environment must exist and have Required reviewers. Set it up under Settings -> Environments, then re-run this workflow."
+            exit 1
+          fi
+
+  approve:
+    name: Approve release ${{ needs.check.outputs.tag }}
+    needs: check
+    if: needs.check.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    # Pauses here until a required reviewer approves or rejects the release.
+    environment: release
+    steps:
+      - run: echo "Release ${{ needs.check.outputs.tag }} approved."
+
+  draft-release:
+    name: Create draft release
+    needs: [check, approve]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # Created up front so the macOS and Windows jobs upload into the same release instead of
+      # racing to create it. A draft left over from a failed attempt is reused.
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+          TARGET: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Draft release $TAG already exists. Reusing it."
+          else
+            gh release create "$TAG" --draft --target "$TARGET" --title "Larakey $TAG" --generate-notes
+          fi
+
+  build:
+    name: Build (${{ matrix.name }})
+    needs: [check, draft-release]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            runner: macos-latest
+            target: mac
+            arch: all
+          - name: Windows
+            runner: windows-latest
+            target: win
+            arch: x64
+    env:
+      # Read by config/nativephp.php. NativePHP strips GITHUB_* values from the bundled app.
+      NATIVEPHP_APP_VERSION: ${{ needs.check.outputs.version }}
+      NATIVEPHP_UPDATER_ENABLED: 'true'
+      NATIVEPHP_UPDATER_PROVIDER: github
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_OWNER: ${{ github.repository_owner }}
+      GITHUB_REPO: ${{ github.event.repository.name }}
+      GITHUB_RELEASE_TYPE: draft
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          # Windows runners ship PHP without these; Laravel and NativePHP need them.
+          extensions: fileinfo, zip, mbstring, openssl, pdo_sqlite, sqlite3
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            nativephp/electron/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+          npm run build
+
+      # This .env is bundled into the app (minus secrets), so it must be a production config.
+      - name: Prepare production environment
+        run: |
+          cp .env.example .env
+          sed -i.bak \
+            -e 's/^APP_ENV=.*/APP_ENV=production/' \
+            -e 's/^APP_DEBUG=.*/APP_DEBUG=false/' \
+            -e 's/^LOG_LEVEL=.*/LOG_LEVEL=warning/' \
+            .env
+          rm .env.bak
+          php artisan key:generate
+
+      - name: Build and upload to the draft release
+        run: php artisan native:publish ${{ matrix.target }} ${{ matrix.arch }} --no-interaction
+
+      # native:publish exits successfully even when the Electron build fails, so check that
+      # installers were actually produced.
+      - name: Verify installers were built
+        run: |
+          shopt -s nullglob
+          installers=(nativephp/electron/dist/*.dmg nativephp/electron/dist/*.exe)
+
+          if (( ${#installers[@]} == 0 )); then
+            echo "::error::No installers were produced. Check the 'Build and upload' step above for errors."
+            exit 1
+          fi
+
+          printf 'Built: %s\n' "${installers[@]}"
+
+  publish-release:
+    name: Publish release
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    steps:
+      # Publishing creates the tag, shows the release on the Releases page and makes it visible
+      # to the auto-updater.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

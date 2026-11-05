@@ -1,0 +1,102 @@
+name: Bug report
+description: Something isn't working as expected.
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please check [existing issues](../issues) first.
+        **Found a security problem?** Don't open an issue. Report it privately (see SECURITY.md).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: Sounds stop playing after the Mac wakes from sleep.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Larakey
+        2. Select the "Clicky Blue" pack
+        3. Put the Mac to sleep and wake it
+        4. Type anything
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Larakey version
+      description: Shown at the bottom of the Settings window.
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: macOS 26.1 / Windows 11 24H2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part is affected?
+      options:
+        - Keyboard sounds
+        - Mouse sounds
+        - Settings window
+        - Menu bar / tray icon
+        - Mute shortcut
+        - Launch at login
+        - Installation or updates
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I'm using the latest version from the Releases page.
+          required: true
+        - label: "(macOS) Larakey is allowed under System Settings → Privacy & Security → Accessibility."
+          required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots, logs or anything else
+      description: |
+        Logs: macOS `~/Library/Application Support/larakey/storage/logs/`,
+        Windows `%APPDATA%\larakey\storage\logs\`. Remove anything private first.

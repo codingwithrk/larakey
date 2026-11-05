@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest an idea or improvement for Larakey.
+title: '[Feature]: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the idea! Please check [existing issues](../issues) to see if it's already been suggested.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      placeholder: I'd like quieter sounds while on video calls without muting everything.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to happen?
+      placeholder: A separate volume slider for mouse clicks.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Which platforms does this apply to?
+      multiple: true
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I'd like to help build this (see CONTRIBUTING.md).
