@@ -40,7 +40,7 @@ Get the latest version from the [**Releases page**](../../releases/latest).
 | Windows (64-bit) | `Larakey-x.x.x-setup.exe` |
 | Linux: Debian, Ubuntu, Mint… (64-bit) | `larakey_x.x.x_amd64.deb` |
 | Linux: Debian, Ubuntu, Mint… (ARM64) | `larakey_x.x.x_arm64.deb` |
-| Linux: any distribution (64-bit) | `Larakey-x.x.x-x64.AppImage` |
+| Linux: any distribution (64-bit) | `Larakey-x.x.x-x86_64.AppImage` |
 | Linux: any distribution (ARM64) | `Larakey-x.x.x-arm64.AppImage` |
 
 ## Installation
@@ -84,8 +84,8 @@ sudo apt install ./larakey_x.x.x_amd64.deb
 **Any other distribution:** make the AppImage executable, then run it:
 
 ```bash
-chmod +x Larakey-x.x.x-x64.AppImage
-./Larakey-x.x.x-x64.AppImage
+chmod +x Larakey-x.x.x-x86_64.AppImage
+./Larakey-x.x.x-x86_64.AppImage
 ```
 
 On Ubuntu 24.04 and later, AppImages of Electron apps can be blocked by Ubuntu's AppArmor
