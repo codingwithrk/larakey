@@ -6,7 +6,7 @@
 
 <p align="center">
     Mechanical keyboard and mouse sounds, everywhere you type.<br>
-    Free and open source, for macOS and Windows (Linux coming soon). Built with Laravel and NativePHP.
+    Free and open source, for macOS, Windows and Linux. Built with Laravel and NativePHP.
 </p>
 
 ---
@@ -38,7 +38,10 @@ Get the latest version from the [**Releases page**](../../releases/latest).
 | macOS (Apple Silicon: M1, M2, M3…) | `Larakey-x.x.x-arm64.dmg` |
 | macOS (Intel) | `Larakey-x.x.x-x64.dmg` |
 | Windows (64-bit) | `Larakey-x.x.x-setup.exe` |
-| Linux | Coming soon |
+| Linux: Debian, Ubuntu, Mint… (64-bit) | `larakey_x.x.x_amd64.deb` |
+| Linux: Debian, Ubuntu, Mint… (ARM64) | `larakey_x.x.x_arm64.deb` |
+| Linux: any distribution (64-bit) | `Larakey-x.x.x-x64.AppImage` |
+| Linux: any distribution (ARM64) | `Larakey-x.x.x-arm64.AppImage` |
 
 ## Installation
 
@@ -70,13 +73,54 @@ will warn you the first time you open it. That warning is expected.
 1. Run `Larakey-x.x.x-setup.exe`.
 2. If you see *"Windows protected your PC"*, click **More info**, then **Run anyway**.
 
+### Linux
+
+**Debian, Ubuntu, Linux Mint and other Debian-based distributions** (recommended):
+
+```bash
+sudo apt install ./larakey_x.x.x_amd64.deb
+```
+
+**Any other distribution:** make the AppImage executable, then run it:
+
+```bash
+chmod +x Larakey-x.x.x-x64.AppImage
+./Larakey-x.x.x-x64.AppImage
+```
+
+On Ubuntu 24.04 and later, AppImages of Electron apps can be blocked by Ubuntu's AppArmor
+restrictions. If the AppImage won't start, use the `.deb` instead.
+
+#### Wayland (the default on Ubuntu, Fedora and Debian)
+
+Wayland doesn't let apps see keyboard and mouse input from other windows. On Wayland,
+Larakey reads your input devices directly instead, which needs your account to be in the
+`input` group:
+
+```bash
+sudo usermod -aG input $USER
+```
+
+Then **log out and back in**. Larakey's Settings window shows a reminder if it can't read your
+devices. Being in the `input` group lets any program you run read input devices, so only do
+this if you're comfortable with that. On **X11** sessions, none of this is needed.
+
+#### Tray icon on GNOME
+
+GNOME hides tray icons by default. Install the
+[AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/)
+extension (preinstalled on Ubuntu) to see Larakey's icon. Most other desktops show it
+out of the box.
+
 ## Usage
 
 - Click the **Larakey icon** in the menu bar or system tray to:
   - turn **Keyboard Sounds** on or off
   - open **Settings…**
   - **Quit**
-- Press `Cmd/Ctrl + Shift + K` anywhere to mute or unmute.
+- Press `Cmd/Ctrl + Shift + K` anywhere to mute or unmute. On Linux with Wayland, this needs a
+  desktop that supports global shortcuts (the GlobalShortcuts portal), which may ask you to
+  allow it the first time.
 - In **Settings**, pick a keyboard pack and a mouse pack, set the volume and choose your
   options. Changes apply instantly, and you can try them in the **Try it** box.
 
@@ -85,6 +129,8 @@ will warn you the first time you open it. That warning is expected.
 - **Windows:** Larakey checks for updates automatically and installs them when you quit.
 - **macOS:** automatic updates require a signed app, so download each new version from the
   [Releases page](../../releases) and replace the app in Applications. Your settings are kept.
+- **Linux:** the AppImage updates itself. For the `.deb`, download the new version and install
+  it over the old one with the same `apt install` command.
 
 ## Development
 
@@ -117,6 +163,7 @@ On macOS, grant Accessibility access to the development Electron app when prompt
 
 ```bash
 php artisan test --compact
+node --test 'nativephp/electron/src/main/larakey/**/*.test.js'
 ```
 
 ### How it works
@@ -124,7 +171,9 @@ php artisan test --compact
 | Part | Location |
 |---|---|
 | Settings window, tray menu, global shortcut | Laravel: `app/`, `resources/views/` |
-| Sound engine: global key/mouse hook ([uiohook-napi](https://github.com/SnosMe/uiohook-napi)) and audio playback | Electron: `nativephp/electron/src/main/larakey/` |
+| Sound engine: audio playback and Linux autostart | Electron: `nativephp/electron/src/main/larakey/` |
+| Input on macOS, Windows and Linux X11: global hook ([uiohook-napi](https://github.com/SnosMe/uiohook-napi)) | `nativephp/electron/src/main/larakey/input/uiohook.js` |
+| Input on Linux Wayland: input devices (`/dev/input`), read in a utility process | `nativephp/electron/src/main/larakey/input/evdev-*.js` |
 | Sound pack recipes | `config/larakey.php` |
 | Generated sound packs | `public/sounds/keyboard/` and `public/sounds/mouse/` |
 

@@ -77,12 +77,17 @@ Every change should come with tests, and all tests must pass:
 
 ```bash
 php artisan test --compact
+node --test 'nativephp/electron/src/main/larakey/**/*.test.js'
 ```
 
 - Use Pest feature tests for HTTP, settings and event behavior, and unit tests for pure logic
   such as the synthesizer.
 - Mock NativePHP facades (`Settings`, `App`, `MenuBar`) or use `Http::fake()`. Tests must not
   need the desktop app running.
+- Bind `App\Support\Platform` (for example `new Platform('Linux')`) when behavior differs by
+  operating system. CI runs on Linux, so never rely on the machine's own platform.
+- Sound engine logic that doesn't need Electron (input decoding, autostart) is tested with
+  Node's built-in test runner in `*.test.js` files next to the code.
 
 ## Sound packs
 

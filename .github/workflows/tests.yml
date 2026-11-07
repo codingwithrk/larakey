@@ -50,3 +50,8 @@ jobs:
 
       - name: Run tests
         run: php artisan test --compact
+
+      # The Electron sound engine's input decoding and Linux autostart. Uses Node's built-in
+      # test runner, so it needs no npm install.
+      - name: Run sound engine tests
+        run: node --test 'nativephp/electron/src/main/larakey/**/*.test.js'

@@ -6,6 +6,7 @@ use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
 use App\Services\KeySoundSettings;
 use App\Services\SoundPackRepository;
+use App\Support\Platform;
 use App\Support\TrayMenu;
 use Native\Desktop\Contracts\ProvidesPhpIni;
 use Native\Desktop\Facades\GlobalShortcut;
@@ -18,6 +19,7 @@ class NativeAppServiceProvider implements ProvidesPhpIni
         protected KeySoundSettings $settings,
         protected SoundPackRepository $packs,
         protected TrayMenu $trayMenu,
+        protected Platform $platform,
     ) {}
 
     /**
@@ -30,7 +32,7 @@ class NativeAppServiceProvider implements ProvidesPhpIni
         $this->settings->sync();
 
         MenuBar::create()
-            ->icon(public_path('menuBarIconTemplate.png'))
+            ->icon($this->trayIcon())
             ->tooltip('Larakey')
             ->onlyShowContextMenu()
             ->withContextMenu($this->trayMenu->build())
@@ -44,6 +46,15 @@ class NativeAppServiceProvider implements ProvidesPhpIni
             OpenSettingsRequested::dispatch();
             Settings::set('larakey_onboarded', true);
         }
+    }
+
+    /**
+     * macOS tints template icons to match the menu bar. Linux panels don't, and can be
+     * light or dark, so Linux gets the full-color icon.
+     */
+    public function trayIcon(): string
+    {
+        return public_path($this->platform->isLinux() ? 'menuBarIconLinux.png' : 'menuBarIconTemplate.png');
     }
 
     /**

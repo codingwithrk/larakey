@@ -18,7 +18,7 @@ class KeySoundSettings
     public function __construct(protected SoundPackRepository $packs) {}
 
     /**
-     * @return array{enabled: bool, volume: int, pack: string, key_up: bool, pitch_variation: bool, mouse_enabled: bool, mouse_pack: string, pack_path: string|null, mouse_pack_path: string|null}
+     * @return array{enabled: bool, volume: int, pack: string, key_up: bool, pitch_variation: bool, mouse_enabled: bool, mouse_pack: string, launch_at_login: bool, pack_path: string|null, mouse_pack_path: string|null}
      */
     public function all(): array
     {
@@ -37,6 +37,7 @@ class KeySoundSettings
             'pitch_variation' => (bool) $settings['pitch_variation'],
             'mouse_enabled' => (bool) $settings['mouse_enabled'],
             'mouse_pack' => $mousePack['slug'] ?? $settings['mouse_pack'],
+            'launch_at_login' => (bool) $settings['launch_at_login'],
             'pack_path' => $pack['path'] ?? null,
             'mouse_pack_path' => $mousePack['path'] ?? null,
         ];
@@ -45,8 +46,8 @@ class KeySoundSettings
     /**
      * Merge the given values into the stored settings.
      *
-     * @param  array{enabled?: bool, volume?: int, pack?: string, key_up?: bool, pitch_variation?: bool, mouse_enabled?: bool, mouse_pack?: string}  $values
-     * @return array{enabled: bool, volume: int, pack: string, key_up: bool, pitch_variation: bool, mouse_enabled: bool, mouse_pack: string, pack_path: string|null, mouse_pack_path: string|null}
+     * @param  array{enabled?: bool, volume?: int, pack?: string, key_up?: bool, pitch_variation?: bool, mouse_enabled?: bool, mouse_pack?: string, launch_at_login?: bool}  $values
+     * @return array{enabled: bool, volume: int, pack: string, key_up: bool, pitch_variation: bool, mouse_enabled: bool, mouse_pack: string, launch_at_login: bool, pack_path: string|null, mouse_pack_path: string|null}
      */
     public function update(array $values): array
     {

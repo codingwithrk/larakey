@@ -1,4 +1,4 @@
-# Builds Larakey for macOS and Windows and publishes the installers to a GitHub Release,
+# Builds Larakey for macOS, Windows and Linux and publishes the installers to a GitHub Release,
 # but only after the tests pass and a maintainer approves.
 #
 # How a release happens:
@@ -139,10 +139,17 @@ jobs:
             runner: macos-latest
             target: mac
             arch: all
+            installers: '*.dmg'
           - name: Windows
             runner: windows-latest
             target: win
             arch: x64
+            installers: '*.exe'
+          - name: Linux
+            runner: ubuntu-latest
+            target: linux
+            arch: all
+            installers: '*.AppImage *.deb'
     env:
       # Read by config/nativephp.php. NativePHP strips GITHUB_* values from the bundled app.
       NATIVEPHP_APP_VERSION: ${{ needs.check.outputs.version }}
@@ -196,16 +203,21 @@ jobs:
       # native:publish exits successfully even when the Electron build fails, so check that
       # installers were actually produced.
       - name: Verify installers were built
+        working-directory: nativephp/electron/dist
         run: |
           shopt -s nullglob
-          installers=(nativephp/electron/dist/*.dmg nativephp/electron/dist/*.exe)
+          read -ra patterns <<< '${{ matrix.installers }}'
 
-          if (( ${#installers[@]} == 0 )); then
-            echo "::error::No installers were produced. Check the 'Build and upload' step above for errors."
-            exit 1
-          fi
+          for pattern in "${patterns[@]}"; do
+            matches=($pattern)
 
-          printf 'Built: %s\n' "${installers[@]}"
+            if (( ${#matches[@]} == 0 )); then
+              echo "::error::No $pattern installer was produced. Check the 'Build and upload' step above for errors."
+              exit 1
+            fi
+
+            printf 'Built: %s\n' "${matches[@]}"
+          done
 
   publish-release:
     name: Publish release

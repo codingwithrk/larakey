@@ -1,8 +1,8 @@
 import NativePHP from '#plugin';
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import path from 'path';
+import { configureLarakey, startLarakey } from './larakey/engine.js';
 import { createSplash } from './splash.js';
-import { startLarakey } from './larakey/engine.js';
 // Inherit User's PATH in Process & ChildProcess
 import fixPath from 'fix-path';
 fixPath();
@@ -16,6 +16,8 @@ const phpBinary = path.join(buildPath, 'php', executable);
 const appPath = path.join(buildPath, 'app');
 
 let splashWindow;
+
+configureLarakey(app);
 
 app.whenReady().then(() => {
     try {

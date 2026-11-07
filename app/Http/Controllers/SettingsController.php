@@ -4,34 +4,36 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Services\KeySoundSettings;
+use App\Services\LaunchAtLogin;
 use App\Services\SoundPackRepository;
+use App\Support\InputStatus;
 use App\Support\TrayMenu;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Native\Desktop\Facades\App;
 use Native\Desktop\Facades\AutoUpdater;
 
 class SettingsController extends Controller
 {
-    public function edit(KeySoundSettings $settings, SoundPackRepository $packs): View
+    public function edit(KeySoundSettings $settings, SoundPackRepository $packs, LaunchAtLogin $launchAtLogin, InputStatus $inputStatus): View
     {
         return view('settings', [
             'settings' => $settings->all(),
             'packs' => $packs->all(SoundPackRepository::KEYBOARD),
             'mousePacks' => $packs->all(SoundPackRepository::MOUSE),
-            'launchAtLogin' => App::openAtLogin(),
+            'launchAtLogin' => $launchAtLogin->isEnabled(),
+            'inputProblem' => $inputStatus->problem(),
             'shortcut' => config('larakey.toggle_shortcut'),
             'version' => config('nativephp.version'),
         ]);
     }
 
-    public function update(UpdateSettingsRequest $request, KeySoundSettings $settings, TrayMenu $trayMenu): JsonResponse|RedirectResponse
+    public function update(UpdateSettingsRequest $request, KeySoundSettings $settings, LaunchAtLogin $launchAtLogin, TrayMenu $trayMenu): JsonResponse|RedirectResponse
     {
         $values = $request->safe()->except('launch_at_login');
 
         if ($request->has('launch_at_login')) {
-            App::openAtLogin($request->boolean('launch_at_login'));
+            $values = [...$values, ...$launchAtLogin->set($request->boolean('launch_at_login'))];
         }
 
         $updated = $settings->update($values);
