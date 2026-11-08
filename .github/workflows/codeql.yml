@@ -1,0 +1,79 @@
+# Scans Larakey's code for security problems with CodeQL on every pull request, every push to
+# main and once a week (new queries can find problems in code that hasn't changed).
+#
+# The "Main Branch Rules" ruleset requires these results before a pull request can merge.
+# This is CodeQL's advanced setup, so CodeQL's default setup must stay off in
+# Settings → Advanced Security, otherwise GitHub rejects the uploaded results.
+#
+# CodeQL doesn't support PHP, so the Laravel app is covered by the test suite and Dependabot.
+# Scanned here:
+#   - javascript-typescript: the sound engine and Electron shell (nativephp/electron) and the
+#     Vite frontend
+#   - actions: the workflows themselves, including the release workflow that publishes builds
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # Mondays at 04:30 UTC
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - actions
+          - javascript-typescript
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          # Both languages are interpreted, so nothing needs to be built first.
+          build-mode: none
+          # security-extended adds lower-precision security queries on top of the defaults.
+          # Quality-only queries are left out: the ruleset blocks merges on any alert.
+          queries: security-extended
+          config: |
+            paths-ignore:
+              # Compiled copy of electron-plugin/src, which is scanned instead
+              - nativephp/electron/electron-plugin/dist
+              - nativephp/electron/electron-plugin/tests
+              - nativephp/electron/electron-plugin/__mocks__
+              - '**/*.test.js'
+              - vendor
+              - node_modules
+              - nativephp/electron/node_modules
+              - public/build
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
