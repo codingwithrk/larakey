@@ -33,6 +33,16 @@
                 </label>
             </header>
 
+            @if ($inputProblem)
+                <section role="alert" class="flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+                    <h2 class="font-semibold">{{ $inputProblem['title'] }}</h2>
+                    <p class="text-xs leading-relaxed">{{ $inputProblem['body'] }}</p>
+                    @if ($inputProblem['command'])
+                        <code class="rounded-md bg-amber-100 px-2 py-1 font-mono text-xs select-text dark:bg-black/30">{{ $inputProblem['command'] }}</code>
+                    @endif
+                </section>
+            @endif
+
             <section class="flex flex-col gap-2">
                 <div class="flex items-center justify-between text-sm font-medium">
                     <label for="volume">Volume</label>

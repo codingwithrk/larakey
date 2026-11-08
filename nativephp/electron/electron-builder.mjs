@@ -153,8 +153,27 @@ export default {
         maintainer: appUrl,
         category: 'Utility',
     },
+    deb: {
+        // electron-builder's defaults, plus the X11 libraries Larakey's global input hook
+        // (uiohook-napi) links against on X11 sessions.
+        depends: [
+            'libgtk-3-0',
+            'libnotify4',
+            'libnss3',
+            'libxss1',
+            'libxtst6',
+            'xdg-utils',
+            'libatspi2.0-0',
+            'libuuid1',
+            'libsecret-1-0',
+            'libx11-6',
+            'libxrandr2',
+            'libxt6',
+        ],
+    },
     appImage: {
-        artifactName: appName + '-${version}.${ext}',
+        // Include the architecture so the x64 and arm64 AppImages don't overwrite each other.
+        artifactName: appName + '-${version}-${arch}.${ext}',
     },
     npmRebuild: false,
     extraMetadata: {

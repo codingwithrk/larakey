@@ -1,0 +1,118 @@
+# Builds the installers for every platform without publishing anything, so changes to the
+# desktop app can be installed and tried before a release. Runs on pull requests that touch
+# the app's build or packaging, and can be started by hand from the Actions tab.
+#
+# Installers are attached to each run as downloadable artifacts for 7 days.
+
+name: Build check
+
+on:
+  pull_request:
+    paths:
+      - 'nativephp/**'
+      - 'config/nativephp.php'
+      - 'app/Providers/NativeAppServiceProvider.php'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            runner: macos-latest
+            target: mac
+            arch: all
+            installers: '*.dmg'
+          - name: Windows
+            runner: windows-latest
+            target: win
+            arch: x64
+            installers: '*.exe'
+          - name: Linux
+            runner: ubuntu-latest
+            target: linux
+            arch: all
+            installers: '*.AppImage *.deb'
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          # Windows runners ship PHP without these; Laravel and NativePHP need them.
+          extensions: fileinfo, zip, mbstring, openssl, pdo_sqlite, sqlite3
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            nativephp/electron/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+          npm run build
+
+      - name: Prepare production environment
+        run: |
+          cp .env.example .env
+          sed -i.bak \
+            -e 's/^APP_ENV=.*/APP_ENV=production/' \
+            -e 's/^APP_DEBUG=.*/APP_DEBUG=false/' \
+            -e 's/^LOG_LEVEL=.*/LOG_LEVEL=warning/' \
+            .env
+          rm .env.bak
+          php artisan key:generate
+
+      - name: Build installers
+        run: php artisan native:build ${{ matrix.target }} ${{ matrix.arch }} --no-interaction
+
+      # native:build exits successfully even when the Electron build fails, so check that
+      # installers were actually produced.
+      - name: Verify installers were built
+        working-directory: nativephp/electron/dist
+        run: |
+          shopt -s nullglob
+          read -ra patterns <<< '${{ matrix.installers }}'
+
+          for pattern in "${patterns[@]}"; do
+            matches=($pattern)
+
+            if (( ${#matches[@]} == 0 )); then
+              echo "::error::No $pattern installer was produced. Check the 'Build installers' step above for errors."
+              exit 1
+            fi
+
+            printf 'Built: %s\n' "${matches[@]}"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: larakey-${{ matrix.target }}
+          path: |
+            nativephp/electron/dist/*.dmg
+            nativephp/electron/dist/*.exe
+            nativephp/electron/dist/*.AppImage
+            nativephp/electron/dist/*.deb
+          if-no-files-found: error
+          retention-days: 7

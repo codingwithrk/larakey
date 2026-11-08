@@ -55,6 +55,8 @@ body:
         - macOS (Apple Silicon)
         - macOS (Intel)
         - Windows
+        - Linux (Wayland)
+        - Linux (X11)
         - Other
     validations:
       required: true
@@ -63,7 +65,7 @@ body:
     id: os-version
     attributes:
       label: OS version
-      placeholder: macOS 26.1 / Windows 11 24H2
+      placeholder: macOS 26.1 / Windows 11 24H2 / Ubuntu 26.04 (GNOME)
     validations:
       required: true
 
@@ -92,6 +94,8 @@ body:
           required: true
         - label: "(macOS) Larakey is allowed under System Settings → Privacy & Security → Accessibility."
           required: false
+        - label: '(Linux Wayland) My account is in the "input" group and I logged out and back in after adding it.'
+          required: false
 
   - type: textarea
     id: extra
@@ -99,4 +103,5 @@ body:
       label: Screenshots, logs or anything else
       description: |
         Logs: macOS `~/Library/Application Support/larakey/storage/logs/`,
-        Windows `%APPDATA%\larakey\storage\logs\`. Remove anything private first.
+        Windows `%APPDATA%\larakey\storage\logs\`, Linux `~/.config/larakey/storage/logs/`.
+        Remove anything private first.

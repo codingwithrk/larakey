@@ -2,7 +2,10 @@
 
 use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
+use App\Providers\NativeAppServiceProvider;
 use App\Services\KeySoundSettings;
+use App\Support\InputStatus;
+use App\Support\Platform;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -26,6 +29,9 @@ beforeEach(function () {
     }
 
     config(['larakey.packs_path' => $this->packsPath]);
+
+    // CI runs on Linux, so pin the platform rather than inheriting the test machine's.
+    $this->app->instance(Platform::class, new Platform('Darwin'));
 });
 
 afterEach(function () {
@@ -33,7 +39,7 @@ afterEach(function () {
 });
 
 it('shows the settings window with the installed keyboard and mouse packs', function () {
-    Settings::shouldReceive('get')->with(KeySoundSettings::STORE_KEY, [])->andReturn([]);
+    Settings::shouldReceive('get')->andReturn([]);
     App::shouldReceive('openAtLogin')->andReturnFalse();
 
     $this->get(route('settings.edit'))
@@ -41,7 +47,36 @@ it('shows the settings window with the installed keyboard and mouse packs', func
         ->assertSee('Creamy Linear')
         ->assertSee('Clicky Blue')
         ->assertSee('Classic Mouse')
-        ->assertSee('Muted Mouse');
+        ->assertSee('Muted Mouse')
+        ->assertDontSee('role="alert"', false);
+});
+
+it('explains how to grant input access when the engine cannot read devices on Linux', function () {
+    Settings::shouldReceive('get')->with(KeySoundSettings::STORE_KEY, [])->andReturn([]);
+    Settings::shouldReceive('get')->with(InputStatus::STORE_KEY, [])->andReturn([
+        'platform' => 'linux',
+        'session' => 'wayland',
+        'backend' => 'evdev',
+        'problem' => 'input-permission',
+    ]);
+    App::shouldReceive('openAtLogin')->andReturnFalse();
+
+    $this->get(route('settings.edit'))
+        ->assertOk()
+        ->assertSee('role="alert"', false)
+        ->assertSee('Larakey can&#039;t read your keyboard and mouse', false)
+        ->assertSee('sudo usermod -aG input $USER');
+});
+
+it('asks macOS users to allow Accessibility access when it is missing', function () {
+    Settings::shouldReceive('get')->with(KeySoundSettings::STORE_KEY, [])->andReturn([]);
+    Settings::shouldReceive('get')->with(InputStatus::STORE_KEY, [])->andReturn(['problem' => 'accessibility']);
+    App::shouldReceive('openAtLogin')->andReturnFalse();
+
+    $this->get(route('settings.edit'))
+        ->assertOk()
+        ->assertSee('Privacy &amp; Security → Accessibility', false)
+        ->assertDontSee('usermod');
 });
 
 it('stores updated settings with the resolved pack path for the sound engine', function () {
@@ -78,14 +113,46 @@ it('rejects unknown sound packs and out of range volume', function () {
         ->assertJsonValidationErrors(['pack', 'mouse_pack', 'volume']);
 });
 
-it('updates launch at login without storing it as a sound setting', function () {
+it('uses the system login items for launch at login on macOS and Windows', function () {
     Settings::shouldReceive('get')->andReturn([]);
     Settings::shouldReceive('set')
         ->once()
-        ->with(KeySoundSettings::STORE_KEY, Mockery::on(fn (array $settings): bool => ! array_key_exists('launch_at_login', $settings)));
+        ->with(KeySoundSettings::STORE_KEY, Mockery::on(fn (array $settings): bool => $settings['launch_at_login'] === false));
     App::shouldReceive('openAtLogin')->once()->with(true);
 
     $this->patchJson(route('settings.update'), ['launch_at_login' => true])->assertOk();
+});
+
+it('stores launch at login for the engine autostart entry on Linux', function () {
+    $this->app->instance(Platform::class, new Platform('Linux'));
+
+    Settings::shouldReceive('get')->andReturn([]);
+    Settings::shouldReceive('set')
+        ->once()
+        ->with(KeySoundSettings::STORE_KEY, Mockery::on(fn (array $settings): bool => $settings['launch_at_login'] === true));
+    App::shouldReceive('openAtLogin')->never();
+
+    $this->patchJson(route('settings.update'), ['launch_at_login' => true])->assertOk();
+});
+
+it('reads launch at login from the stored settings on Linux', function () {
+    $this->app->instance(Platform::class, new Platform('Linux'));
+
+    Settings::shouldReceive('get')->with(KeySoundSettings::STORE_KEY, [])->andReturn(['launch_at_login' => true]);
+    Settings::shouldReceive('get')->with(InputStatus::STORE_KEY, [])->andReturn([]);
+    App::shouldReceive('openAtLogin')->never();
+
+    $this->get(route('settings.edit'))
+        ->assertOk()
+        ->assertSeeInOrder(['Launch at login', 'name="launch_at_login" value="1"', 'checked'], false);
+});
+
+it('uses a full-color tray icon on Linux and a template icon on macOS', function () {
+    $this->app->instance(Platform::class, new Platform('Linux'));
+    expect(app(NativeAppServiceProvider::class)->trayIcon())->toBe(public_path('menuBarIconLinux.png'))->toBeFile();
+
+    $this->app->instance(Platform::class, new Platform('Darwin'));
+    expect(app(NativeAppServiceProvider::class)->trayIcon())->toBe(public_path('menuBarIconTemplate.png'))->toBeFile();
 });
 
 it('toggles sounds and refreshes the tray menu when the shortcut is pressed', function () {

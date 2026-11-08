@@ -29,6 +29,8 @@ return [
         'mouse_pack' => 'classic-mouse',
         'key_up' => true,
         'pitch_variation' => true,
+        // Only stored here on Linux; macOS and Windows use the system login items.
+        'launch_at_login' => false,
     ],
 
     /*

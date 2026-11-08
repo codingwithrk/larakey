@@ -38,6 +38,10 @@ Knowing this helps you judge what counts as a vulnerability:
 - The sound engine (`nativephp/electron/src/main/larakey/`) receives raw key and mouse events
   from the operating system. It reduces each one to a **category** (for example `space`,
   `enter`, `modifier` or `left` click) and passes only that category to the audio player.
+- On Linux with Wayland, events come from the kernel's input devices (`/dev/input`), read by a
+  separate utility process (`input/evdev-worker.js`). That process also sends only categories
+  to the engine. Reading these devices requires the user to be in the `input` group, which
+  Larakey asks the user to set up themselves and never does on its own.
 - **Characters are never** stored, logged, sent to the Laravel app or sent over the network.
 - Settings are stored locally in NativePHP's settings store. Larakey makes no network requests
   except update checks against this repository's GitHub Releases.
