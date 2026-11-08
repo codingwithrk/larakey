@@ -128,11 +128,15 @@ out of the box.
 
 ## Updates
 
-- **Windows:** Larakey checks for updates automatically and installs them when you quit.
-- **macOS:** automatic updates require a signed app, so download each new version from the
-  [Releases page](../../releases) and replace the app in Applications. Your settings are kept.
-- **Linux:** the AppImage updates itself. For the `.deb`, download the new version and install
-  it over the old one with the same `apt install` command.
+Choose **Check for Updates…** in the Larakey tray menu to see whether a newer version is out.
+
+- **Windows:** Larakey also checks automatically. Updates download in the background and install
+  when you quit.
+- **macOS:** automatic updates require a signed app. When an update is available, **Download**
+  opens the [Releases page](../../releases); replace the app in Applications with the new one.
+  Your settings are kept.
+- **Linux:** the AppImage updates itself. For the `.deb`, **Download** opens the Releases page;
+  install the new version over the old one with the same `apt install` command.
 
 ## Development
 

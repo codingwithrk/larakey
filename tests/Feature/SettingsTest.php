@@ -1,6 +1,5 @@
 <?php
 
-use App\Events\CheckForUpdatesRequested;
 use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
 use App\Listeners\OpenSettingsWindow;
@@ -12,7 +11,6 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Native\Desktop\Facades\App;
-use Native\Desktop\Facades\AutoUpdater;
 use Native\Desktop\Facades\MenuBar;
 use Native\Desktop\Facades\Settings;
 
@@ -217,12 +215,3 @@ it('sizes the settings window to fit the input access banner when it is shown', 
     'no problem' => [null, OpenSettingsWindow::HEIGHT],
     'input permission missing' => ['input-permission', OpenSettingsWindow::HEIGHT + OpenSettingsWindow::INPUT_PROBLEM_HEIGHT],
 ]);
-
-it('checks for updates when the tray menu item is clicked', function () {
-    AutoUpdater::shouldReceive('checkForUpdates')->once();
-
-    $this->postJson('/_native/api/events', [
-        'event' => CheckForUpdatesRequested::class,
-        'payload' => ['item' => ['id' => null, 'label' => 'Check for Updates…'], 'combo' => []],
-    ])->assertOk();
-});

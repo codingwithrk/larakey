@@ -19,4 +19,9 @@ class Platform
     {
         return $this->family === 'Darwin';
     }
+
+    public function isWindows(): bool
+    {
+        return $this->family === 'Windows';
+    }
 }
