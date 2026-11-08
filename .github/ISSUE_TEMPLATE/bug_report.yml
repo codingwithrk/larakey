@@ -42,7 +42,7 @@ body:
     id: version
     attributes:
       label: Larakey version
-      description: Shown at the bottom of the Settings window.
+      description: Shown in the Larakey menu bar / tray menu.
       placeholder: 1.0.0
     validations:
       required: true

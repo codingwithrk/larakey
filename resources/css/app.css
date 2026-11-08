@@ -7,3 +7,25 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Volume slider: a filled track up to the thumb (--fill is kept in sync by app.js). */
+@utility range-slider {
+    appearance: none;
+    height: 4px;
+    border-radius: 9999px;
+    background: linear-gradient(
+        to right,
+        var(--color-blue-500) var(--fill, 50%),
+        light-dark(var(--color-zinc-300), var(--color-zinc-600)) var(--fill, 50%)
+    );
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 9999px;
+        background: white;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+        cursor: pointer;
+    }
+}
