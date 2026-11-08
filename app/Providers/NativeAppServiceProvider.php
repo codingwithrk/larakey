@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
+use App\Jobs\NotifyAboutUpdate;
 use App\Services\KeySoundSettings;
 use App\Services\SoundPackRepository;
 use App\Support\Platform;
@@ -45,6 +46,12 @@ class NativeAppServiceProvider implements ProvidesPhpIni
         if (! Settings::get('larakey_onboarded', false)) {
             OpenSettingsRequested::dispatch();
             Settings::set('larakey_onboarded', true);
+        }
+
+        // Windows' auto-updater already checks and notifies at startup. Unsigned macOS apps
+        // can't use it, and the .deb has no updater at all.
+        if (! $this->platform->isWindows()) {
+            NotifyAboutUpdate::dispatch();
         }
     }
 

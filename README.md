@@ -128,7 +128,9 @@ out of the box.
 
 ## Updates
 
-Choose **Check for Updates…** in the Larakey tray menu to see whether a newer version is out.
+Choose **Check for Updates…** in the Larakey tray menu to see whether a newer version is out. On
+macOS and Linux, Larakey also checks when it starts and shows a notification once for each new
+version; click it to download the update.
 
 - **Windows:** Larakey also checks automatically. Updates download in the background and install
   when you quit.

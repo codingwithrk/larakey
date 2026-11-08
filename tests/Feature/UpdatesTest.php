@@ -1,9 +1,11 @@
 <?php
 
 use App\Events\CheckForUpdatesRequested;
+use App\Jobs\NotifyAboutUpdate;
 use App\Support\Platform;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Native\Desktop\Facades\Settings;
 
 beforeEach(function () {
     config([
@@ -98,3 +100,51 @@ it('explains when GitHub cannot be reached', function (mixed $response) {
     'no releases yet' => fn () => Http::response(['message' => 'Not Found'], 404),
     'offline' => fn () => Http::failedConnection(),
 ]);
+
+it('notifies once at startup when a newer version is available', function () {
+    fakeUpdateCheck(Http::response(newRelease()));
+    Settings::shouldReceive('get')->with(NotifyAboutUpdate::NOTIFIED_KEY)->andReturnNull();
+    Settings::shouldReceive('set')->once()->with(NotifyAboutUpdate::NOTIFIED_KEY, '1.1.0');
+
+    NotifyAboutUpdate::dispatchSync();
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/notification')
+        && $request['title'] === 'Larakey 1.1.0 is available'
+        && $request['event'] === CheckForUpdatesRequested::class);
+});
+
+it('does not notify about the same version twice', function () {
+    fakeUpdateCheck(Http::response(newRelease()));
+    Settings::shouldReceive('get')->with(NotifyAboutUpdate::NOTIFIED_KEY)->andReturn('1.1.0');
+    Settings::shouldReceive('set')->never();
+
+    NotifyAboutUpdate::dispatchSync();
+
+    Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), '/notification'));
+});
+
+it('stays quiet at startup when up to date or offline', function (mixed $response) {
+    fakeUpdateCheck($response);
+    Settings::shouldReceive('get')->andReturnNull();
+    Settings::shouldReceive('set')->never();
+
+    NotifyAboutUpdate::dispatchSync();
+
+    Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), '/notification')
+        || str_ends_with($request->url(), 'alert/message'));
+})->with([
+    'up to date' => fn () => Http::response(newRelease('v1.0.0')),
+    'offline' => fn () => Http::failedConnection(),
+]);
+
+it('opens the update dialog when the notification is clicked', function () {
+    fakeUpdateCheck(Http::response(newRelease()), chosenButton: 1);
+
+    test()->postJson('/_native/api/events', [
+        'event' => CheckForUpdatesRequested::class,
+        'payload' => ['reference' => 'abc', 'event' => '{}'],
+    ])->assertOk();
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'alert/message')
+        && $request['message'] === 'Larakey 1.1.0 is available');
+});
