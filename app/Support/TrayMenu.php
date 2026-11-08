@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Events\CheckForUpdatesRequested;
 use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
 use App\Services\KeySoundSettings;
@@ -21,6 +22,9 @@ class TrayMenu
             Menu::checkbox('Keyboard Sounds', $this->settings->isEnabled(), $shortcut)
                 ->event(ToggleSoundsRequested::class),
             Menu::label('Settings…')->event(OpenSettingsRequested::class),
+            Menu::separator(),
+            Menu::label('Larakey v'.config('nativephp.version'))->disabled(),
+            Menu::label('Check for Updates…')->event(CheckForUpdatesRequested::class),
             Menu::separator(),
             Menu::quit('Quit Larakey'),
         );

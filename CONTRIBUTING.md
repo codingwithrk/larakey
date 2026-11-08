@@ -101,7 +101,7 @@ Sounds are synthesized from recipes in `config/larakey.php`, under `presets.keyb
    php artisan larakey:generate-sounds
    ```
 
-3. Listen to it in the app's **Try it** box, then commit the recipe **and** the regenerated files
+3. Select it in Settings and type anywhere to listen to it, then commit the recipe **and** the regenerated files
    in `public/sounds/`.
 
 Please keep packs to **mechanical** keyboard switches and mouse switches.

@@ -11,7 +11,6 @@ use App\Support\TrayMenu;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Native\Desktop\Facades\AutoUpdater;
 
 class SettingsController extends Controller
 {
@@ -23,8 +22,6 @@ class SettingsController extends Controller
             'mousePacks' => $packs->all(SoundPackRepository::MOUSE),
             'launchAtLogin' => $launchAtLogin->isEnabled(),
             'inputProblem' => $inputStatus->problem(),
-            'shortcut' => config('larakey.toggle_shortcut'),
-            'version' => config('nativephp.version'),
         ]);
     }
 
@@ -47,12 +44,5 @@ class SettingsController extends Controller
         }
 
         return to_route('settings.edit');
-    }
-
-    public function checkForUpdates(): JsonResponse
-    {
-        AutoUpdater::checkForUpdates();
-
-        return response()->json(['checking' => true]);
     }
 }

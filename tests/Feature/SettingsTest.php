@@ -2,6 +2,7 @@
 
 use App\Events\OpenSettingsRequested;
 use App\Events\ToggleSoundsRequested;
+use App\Listeners\OpenSettingsWindow;
 use App\Providers\NativeAppServiceProvider;
 use App\Services\KeySoundSettings;
 use App\Support\InputStatus;
@@ -48,6 +49,7 @@ it('shows the settings window with the installed keyboard and mouse packs', func
         ->assertSee('Clicky Blue')
         ->assertSee('Classic Mouse')
         ->assertSee('Muted Mouse')
+        ->assertSeeInOrder(['<select', 'name="pack"', 'value="creamy-linear"', '<select', 'name="mouse_pack"', 'value="classic-mouse"'], false)
         ->assertDontSee('role="alert"', false);
 });
 
@@ -144,7 +146,7 @@ it('reads launch at login from the stored settings on Linux', function () {
 
     $this->get(route('settings.edit'))
         ->assertOk()
-        ->assertSeeInOrder(['Launch at login', 'name="launch_at_login" value="1"', 'checked'], false);
+        ->assertSeeInOrder(['name="launch_at_login" value="1"', 'checked', 'Launch at login'], false);
 });
 
 it('uses a full-color tray icon on Linux and a template icon on macOS', function () {
@@ -199,3 +201,17 @@ it('toggles sounds when the tray menu item is clicked', function () {
         'payload' => ['item' => ['id' => null, 'label' => 'Keyboard Sounds', 'checked' => false], 'combo' => []],
     ])->assertOk();
 });
+
+it('sizes the settings window to fit the input access banner when it is shown', function (?string $problem, int $height) {
+    Settings::shouldReceive('get')->with(InputStatus::STORE_KEY, [])->andReturn(['problem' => $problem]);
+    Http::fake();
+
+    OpenSettingsRequested::dispatch();
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'window/open')
+        && $request['width'] === 390
+        && $request['height'] === $height);
+})->with([
+    'no problem' => [null, OpenSettingsWindow::HEIGHT],
+    'input permission missing' => ['input-permission', OpenSettingsWindow::HEIGHT + OpenSettingsWindow::INPUT_PROBLEM_HEIGHT],
+]);

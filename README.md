@@ -117,20 +117,28 @@ out of the box.
 - Click the **Larakey icon** in the menu bar or system tray to:
   - turn **Keyboard Sounds** on or off
   - open **Settings…**
+  - see your version and **Check for Updates…**
   - **Quit**
 - Press `Cmd/Ctrl + Shift + K` anywhere to mute or unmute. On Linux with Wayland, this needs a
   desktop that supports global shortcuts (the GlobalShortcuts portal), which may ask you to
   allow it the first time.
 - In **Settings**, pick a keyboard pack and a mouse pack, set the volume and choose your
-  options. Changes apply instantly, and you can try them in the **Try it** box.
+  options: key release sounds, pitch variation, mouse sounds and launch at login. Changes apply
+  instantly.
 
 ## Updates
 
-- **Windows:** Larakey checks for updates automatically and installs them when you quit.
-- **macOS:** automatic updates require a signed app, so download each new version from the
-  [Releases page](../../releases) and replace the app in Applications. Your settings are kept.
-- **Linux:** the AppImage updates itself. For the `.deb`, download the new version and install
-  it over the old one with the same `apt install` command.
+Choose **Check for Updates…** in the Larakey tray menu to see whether a newer version is out. On
+macOS and Linux, Larakey also checks when it starts and shows a notification once for each new
+version; click it to download the update.
+
+- **Windows:** Larakey also checks automatically. Updates download in the background and install
+  when you quit.
+- **macOS:** automatic updates require a signed app. When an update is available, **Download**
+  opens the [Releases page](../../releases); replace the app in Applications with the new one.
+  Your settings are kept.
+- **Linux:** the AppImage updates itself. For the `.deb`, **Download** opens the Releases page;
+  install the new version over the old one with the same `apt install` command.
 
 ## Development
 
