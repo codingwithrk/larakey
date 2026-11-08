@@ -55,10 +55,26 @@ export function setAutostart(enabled, file = autostartFile(), executable = launc
 
     const contents = desktopEntry(executable);
 
-    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === contents) {
+    if (readEntry(file) === contents) {
         return;
     }
 
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, contents);
+}
+
+/**
+ * Reads the autostart entry, or returns null if there is none. Reading directly instead of
+ * checking that the file exists first avoids a race between the check and the read.
+ */
+function readEntry(file) {
+    try {
+        return fs.readFileSync(file, 'utf8');
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return null;
+        }
+
+        throw error;
+    }
 }
